@@ -23,25 +23,25 @@ class LLMQueryReformulator(BaseQueryReformulator):
         self.model = model
     
     def reformulate(self, query: str) -> BaseQueryReformulator.ReformulatedQuery:
-        prompt = """Given the user query, reformulate it to be more precise and extract key search terms.
-        Return your response in this JSON format:
-        {
-            "refined_query": "reformulated question",
-            "keywords": ["key1", "key2", "key3"]
-        }
-        
-        Only return the JSON object, no other text.
-        
-        User Query: {query}"""
+        prompt = f"""Given the user query, reformulate it to be more precise and extract key search terms.
+Return your response in this JSON format:
+{{
+    "refined_query": "reformulated question",
+    "keywords": ["key1", "key2", "key3"]
+}}
+
+Only return the JSON object, no other text.
+
+User Query: {query}"""
         
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[{
                 "role": "user",
-                "content": prompt.format(query=query)
+                "content": prompt
             }],
             temperature=0,
-            response_format={ "type": "json_object" }  # Force JSON response
+            response_format={ "type": "json_object" }
         )
         
         try:
@@ -51,6 +51,5 @@ class LLMQueryReformulator(BaseQueryReformulator):
                 keywords=result["keywords"]
             )
         except json.JSONDecodeError as e:
-            # Log the actual response if JSON parsing fails
             print(f"Failed to parse JSON. Response was: {response.choices[0].message.content}")
             raise 
