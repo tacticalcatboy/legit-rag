@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+openai
+qdrant-client
+numpy
+python-dotenv 
