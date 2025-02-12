@@ -1,21 +1,28 @@
-from abc import ABC, abstractmethod
-from typing import List
+from abc import abstractmethod
+from typing import List, Dict, Any
 from openai import OpenAI
-from .models import SearchResult, RAGResponse, Citation
-import json
+from .base_component import BaseComponent
 from .config import Settings
+from .models import RAGResponse, Citation
+import json
 
-class BaseAnswerGenerator(ABC):
+class BaseAnswerGenerator(BaseComponent):
+    """Base class for generating answers from context"""
+    def __init__(self):
+        super().__init__(name="answer_generator")
+    
+    async def _execute(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
+        """Execute answer generation"""
+        return await self.generate_answer(query, context)
+    
     @abstractmethod
-    def generate_answer(self, query: str, context: List[SearchResult]) -> RAGResponse:
-        """
-        Generate answer with citations.
-        Returns a RAGResponse containing the answer, citations, and confidence score.
-        """
-        pass 
+    async def generate_answer(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
+        """Generate an answer using the retrieved context."""
+        pass
 
 class LLMAnswerGenerator(BaseAnswerGenerator):
     def __init__(self, model: str = "gpt-4-turbo-preview"):
+        super().__init__()
         settings = Settings()
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model

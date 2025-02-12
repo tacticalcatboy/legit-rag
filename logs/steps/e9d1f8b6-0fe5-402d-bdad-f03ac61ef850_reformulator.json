@@ -1,0 +1,1 @@
+{"step_name": "reformulator", "input": {"query": "Tell me about OpenAI's founding"}, "output": {"refined_query": "When was OpenAI founded and who were its founders?", "keywords": ["OpenAI", "founded", "founders"]}, "metadata": {}, "timestamp": "2025-02-09T16:00:04.061364", "duration_ms": 1844.376, "success": true, "error": null}

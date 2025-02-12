@@ -1,0 +1,17 @@
+{
+  "workflow_id": "7836020f-178a-4e08-a875-f46ee83bf37d",
+  "query": "Tell me about OpenAI's founding",
+  "start_time": "2025-02-09T16:11:36.181400",
+  "end_time": "2025-02-09T16:11:44.065269",
+  "success": true,
+  "steps": [
+    {
+      "step_name": "router",
+      "input": {
+        "query": "Tell me about OpenAI's founding"
+      },
+      "output": {
+        "intent": "answer"
+      },
+      "metadata": {},
+      "timestamp": 

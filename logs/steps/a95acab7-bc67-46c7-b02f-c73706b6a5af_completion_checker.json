@@ -1,0 +1,1 @@
+{"step_name": "completion_checker", "input": {"query": "Tell me about OpenAI's founding", "completion_score": 1.0}, "output": {"completion_score": 1.0}, "metadata": {}, "timestamp": "2025-02-09T16:05:39.056143", "duration_ms": 1283.516, "success": true, "error": null}

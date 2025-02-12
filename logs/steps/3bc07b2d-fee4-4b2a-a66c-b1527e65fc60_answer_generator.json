@@ -1,0 +1,1 @@
+{"step_name": "answer_generator", "input": {"query": "What type of programming language is Python?", "completion_score": 1.0}, "output": {"confidence_score": 1.0, "number_of_citations": 1}, "metadata": {}, "timestamp": "2025-02-09T15:59:59.911257", "duration_ms": 3392.6090000000004, "success": true, "error": null}

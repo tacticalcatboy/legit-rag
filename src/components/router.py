@@ -1,7 +1,7 @@
+from abc import abstractmethod
 from enum import Enum
-from abc import ABC, abstractmethod
-from typing import Optional
 from openai import OpenAI
+from .base_component import BaseComponent
 from .config import Settings
 
 class QueryIntent(Enum):
@@ -9,14 +9,23 @@ class QueryIntent(Enum):
     CLARIFY = "clarify"       # Need more information
     REJECT = "reject"         # Cannot/should not answer
 
-class BaseRequestRouter(ABC):
+class BaseRequestRouter(BaseComponent):
+    """Base class for routing user queries"""
+    def __init__(self):
+        super().__init__(name="router")
+    
+    async def _execute(self, query: str) -> QueryIntent:
+        """Execute routing"""
+        return await self.route(query)
+    
     @abstractmethod
-    def route_query(self, query: str) -> QueryIntent:
-        """Determine how to handle the incoming query."""
+    async def route(self, query: str) -> QueryIntent:
+        """Determine the intent of the query."""
         pass
 
 class LLMRequestRouter(BaseRequestRouter):
     def __init__(self, model: str = "gpt-4-turbo-preview"):
+        super().__init__()
         settings = Settings()
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model
@@ -34,7 +43,7 @@ class LLMRequestRouter(BaseRequestRouter):
         
         Decision:"""
         
-        response = self.client.chat.completions.create(
+        response = await self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt.format(query=query)}],
             temperature=0,

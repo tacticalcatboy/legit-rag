@@ -23,10 +23,10 @@ documents = {
 }
 
 # Add documents
-print("\nAdding documents...")
-response = requests.post(f"{BASE_URL}/documents", json=documents)
-print(f"Status: {response.status_code}")
-print(json.dumps(response.json(), indent=2))
+# print("\nAdding documents...")
+# response = requests.post(f"{BASE_URL}/documents", json=documents)
+# print(f"Status: {response.status_code}")
+# print(json.dumps(response.json(), indent=2))
 
 # Test queries
 test_queries = [
