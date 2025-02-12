@@ -98,17 +98,19 @@ OPENAI_API_KEY=your-key-here
 
 ## Running the System
 
-1. Start Qdrant vector database:
+Start our API server and the Qdrant vector database:
 ```bash
 docker-compose up -d
 ```
 
-2. Start the API server:
+- The API will be available at [`http://localhost:8000`](http://localhost:8000)
+- The Qdrant db will be available at [`http://localhost:6333`](http://localhost:6333)
+
+To run the API server directly (i.e. in a debugger), note that&mdash;after stopping it in Docker&mdash;it may be run with:
+
 ```bash
 python -m src.api
 ```
-
-The API will be available at `http://localhost:8000`
 
 ## API Endpoints
 
