@@ -1,1 +1,0 @@
-{"step_name": "router", "input": {"query": "Tell me about OpenAI's founding"}, "output": {"intent": "answer"}, "metadata": {}, "timestamp": "2025-02-09T16:05:36.902378", "duration_ms": 501.416, "success": true, "error": null}

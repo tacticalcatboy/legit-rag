@@ -1,1 +1,0 @@
-{"step_name": "reformulator", "input": {"query": "When was Python created and by whom?"}, "output": {"refined_query": "Python programming language creation date and creator", "keywords": ["Python", "creation date", "creator"]}, "metadata": {}, "timestamp": "2025-02-09T15:59:52.184873", "duration_ms": 1183.242, "success": true, "error": null}

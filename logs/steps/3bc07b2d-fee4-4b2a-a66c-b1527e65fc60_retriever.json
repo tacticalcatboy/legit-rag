@@ -1,1 +1,0 @@
-{"step_name": "retriever", "input": {"refined_text": "What is the classification of the Python programming language?", "keywords": ["Python", "programming language", "classification"]}, "output": {"found_results": 3}, "metadata": {}, "timestamp": "2025-02-09T15:59:58.502112", "duration_ms": 496.218, "success": true, "error": null}
