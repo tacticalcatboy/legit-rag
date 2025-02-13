@@ -7,6 +7,12 @@ from .components import (
     BaseCompletionChecker,
     BaseAnswerGenerator
 )
+import logging
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class RAGWorkflow:
     def __init__(
@@ -25,26 +31,46 @@ class RAGWorkflow:
         self.answer_generator = answer_generator
         self.completion_threshold = completion_threshold
     
-    async def process_query(self, query: str) -> Optional[RAGResponse]:
+    def process_query(self, query: str) -> Optional[RAGResponse]:
         # Route
-        intent = await self.router.execute(query)
+        logger.info("Step 1: Routing query...")
+        intent = self.router.execute(query)
+        logger.info(f"Query intent: {intent}")
         if intent != QueryIntent.ANSWER:
             return None
         
         # Reformulate
-        reformulated = await self.reformulator.execute(query)
+        logger.info("Step 2: Reformulating query...")
+        reformulated = self.reformulator.execute(query)
+        logger.info(f"Reformulated query: {reformulated.refined_text}")
+        logger.info(f"Generated keywords: {reformulated.keywords}")        
         
         # Retrieve
-        context = await self.retriever.execute(
+        logger.info("Step 3: Retrieving context...")
+        context = self.retriever.execute(
             reformulated.refined_text,
             reformulated.keywords
         )
+
+        logger.info(f"Found {len(context)} search results")
+        for i, result in enumerate(context):
+            logger.info(f"Result {i+1}: Score={result.score}, Text={result.text[:100]}...")
+
         
         # Check completion
-        can_complete = await self.completion_checker.execute(query, context)
-        if not can_complete:
+        logger.info("Step 4: Checking completion capability...")
+        completion_confidence = self.completion_checker.execute(query, context)
+        if completion_confidence < self.completion_threshold:
+            logger.info(f"Completion confidence is too low.{completion_score} < {self.completion_threshold}")
             return None
         
         # Generate answer
-        response = await self.answer_generator.execute(query, context)
-        return response 
+        logger.info("Step 5: Generating answer...")
+        try:
+            response = self.answer_generator.execute(query, context)
+            logger.info(f"Generated answer with confidence score: {response.confidence_score}")
+            logger.info(f"Number of citations: {len(response.citations)}")
+            return response
+        except Exception as e:
+            logger.error(f"Error generating answer: {str(e)}")
+            raise 

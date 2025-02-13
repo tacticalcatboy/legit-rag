@@ -2,19 +2,20 @@ from abc import abstractmethod
 from openai import OpenAI
 from typing import List, Dict, Any
 from .base_component import BaseComponent
-from .config import Settings
+from ..config import Settings
+from ..models import SearchResult
 
 class BaseCompletionChecker(BaseComponent):
     """Base class for checking if query can be answered with context"""
     def __init__(self):
         super().__init__(name="completion_checker")
     
-    async def _execute(self, query: str, context: List[Dict[str, Any]]) -> float:
+    def _execute(self, query: str, context: List[Dict[str, Any]]) -> float:
         """Execute completion check"""
-        return await self.check_completion(query, context)
+        return self.check_completion(query, context)
     
     @abstractmethod
-    async def check_completion(self, query: str, context: List[Dict[str, Any]]) -> float:
+    def check_completion(self, query: str, context: List[Dict[str, Any]]) -> float:
         """Check if the query can be answered with the given context."""
         pass
 

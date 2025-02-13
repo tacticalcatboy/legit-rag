@@ -5,8 +5,8 @@ from qdrant_client.http import models as rest
 from qdrant_client.http.models import Filter, FieldCondition, MatchText
 from openai import OpenAI
 import numpy as np
-from .models import SearchResult, Document
-from .config import Settings
+from ..models import SearchResult, Document
+from ..config import Settings
 from .base_component import BaseComponent
 
 class BaseRetriever(BaseComponent):
@@ -14,12 +14,12 @@ class BaseRetriever(BaseComponent):
     def __init__(self):
         super().__init__(name="retriever")
     
-    async def _execute(self, query: str, keywords: List[str]) -> List[SearchResult]:
+    def _execute(self, query: str, keywords: List[str]) -> List[SearchResult]:
         """Execute retrieval"""
-        return await self.retrieve(query, keywords)
+        return self.retrieve(query, keywords)
     
     @abstractmethod
-    async def retrieve(self, query: str, keywords: List[str]) -> List[SearchResult]:
+    def retrieve(self, query: str, keywords: List[str]) -> List[SearchResult]:
         """Retrieve relevant context based on query and keywords."""
         pass
 
@@ -47,15 +47,15 @@ class VectorRetriever(BaseRetriever):
             )
         )
     
-    async def retrieve(self, query: str, keywords: List[str]) -> List[SearchResult]:
+    def retrieve(self, query: str, keywords: List[str]) -> List[SearchResult]:
         """Combine semantic and keyword search results."""
-        semantic_results = await self.semantic_search(query)
-        keyword_results = await self.keyword_search(keywords)
+        semantic_results =  self.semantic_search(query)
+        keyword_results =  self.keyword_search(keywords)
         return self.rerank(semantic_results, keyword_results)
     
-    async def add_documents(self, documents: List[Document]) -> None:
+    def add_documents(self, documents: List[Document]) -> None:
         # Get embeddings for all texts
-        embeddings = [await self._get_embedding(doc.text) for doc in documents]
+        embeddings = [self._get_embedding(doc.text) for doc in documents]
         
         # Prepare points for Qdrant
         points = [
@@ -71,15 +71,15 @@ class VectorRetriever(BaseRetriever):
         ]
         
         # Upload to Qdrant
-        await self.client.upsert(
+        self.client.upsert(
             collection_name=self.collection_name,
             points=points
         )
     
-    async def semantic_search(self, query: str, top_k: int = 5) -> List[SearchResult]:
-        query_vector = await self._get_embedding(query)
+    def semantic_search(self, query: str, top_k: int = 5) -> List[SearchResult]:
+        query_vector = self._get_embedding(query)
         
-        results = await self.client.search(
+        results = self.client.search(
             collection_name=self.collection_name,
             query_vector=query_vector,
             limit=top_k
@@ -95,7 +95,7 @@ class VectorRetriever(BaseRetriever):
             for hit in results
         ]
     
-    async def keyword_search(self, keywords: List[str], top_k: int = 5) -> List[SearchResult]:
+    def keyword_search(self, keywords: List[str], top_k: int = 5) -> List[SearchResult]:
         keyword_conditions = [
             FieldCondition(
                 key="text",
@@ -104,7 +104,7 @@ class VectorRetriever(BaseRetriever):
             for keyword in keywords
         ]
         
-        results = (await self.client.scroll(
+        results = (self.client.scroll(
             collection_name=self.collection_name,
             scroll_filter=Filter(
                 should=keyword_conditions
@@ -122,8 +122,8 @@ class VectorRetriever(BaseRetriever):
             for point in results
         ]
     
-    async def _get_embedding(self, text: str) -> np.ndarray:
-        response = await self.openai_client.embeddings.create(
+    def _get_embedding(self, text: str) -> np.ndarray:
+        response = self.openai_client.embeddings.create(
             model=self.embedding_model,
             input=text
         )

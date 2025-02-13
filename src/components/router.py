@@ -2,24 +2,20 @@ from abc import abstractmethod
 from enum import Enum
 from openai import OpenAI
 from .base_component import BaseComponent
-from .config import Settings
-
-class QueryIntent(Enum):
-    ANSWER = "answer"          # Direct answer using RAG
-    CLARIFY = "clarify"       # Need more information
-    REJECT = "reject"         # Cannot/should not answer
+from ..config import Settings
+from ..models import QueryIntent
 
 class BaseRequestRouter(BaseComponent):
     """Base class for routing user queries"""
     def __init__(self):
         super().__init__(name="router")
     
-    async def _execute(self, query: str) -> QueryIntent:
+    def _execute(self, query: str) -> QueryIntent:
         """Execute routing"""
-        return await self.route(query)
+        return self.route_query(query)
     
     @abstractmethod
-    async def route(self, query: str) -> QueryIntent:
+    def route_query(self, query: str) -> QueryIntent:
         """Determine the intent of the query."""
         pass
 
@@ -43,7 +39,7 @@ class LLMRequestRouter(BaseRequestRouter):
         
         Decision:"""
         
-        response = await self.client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=[{"role": "user", "content": prompt.format(query=query)}],
             temperature=0,

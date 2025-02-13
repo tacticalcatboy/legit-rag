@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from openai import OpenAI
 import json
 from .base_component import BaseComponent
-from .config import Settings
-from .evaluation import BaseEvaluator
+from ..config import Settings
 
 @dataclass
 class ReformulatedQuery:
@@ -17,12 +16,12 @@ class BaseQueryReformulator(BaseComponent, ABC):
     def __init__(self):
         super().__init__(name="reformulator")
     
-    async def _execute(self, query: str) -> ReformulatedQuery:
+    def _execute(self, query: str) -> ReformulatedQuery:
         """Execute reformulation"""
-        return await self.reformulate(query)
+        return self.reformulate(query)
     
     @abstractmethod
-    async def reformulate(self, query: str) -> ReformulatedQuery:
+    def reformulate(self, query: str) -> ReformulatedQuery:
         """Reformulate the query and generate keywords."""
         pass
 
@@ -33,23 +32,23 @@ class LLMQueryReformulator(BaseQueryReformulator):
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model
     
-    async def reformulate(self, query: str) -> ReformulatedQuery:
-        prompt = """Given the user query, reformulate it to be more precise and extract key search terms.
+    def reformulate(self, query: str) -> ReformulatedQuery:
+        prompt = f"""Given the user query, reformulate it to be more precise and extract key search terms.
 Return your response in this JSON format:
-{
+{{
     "refined_query": "reformulated question",
     "keywords": ["key1", "key2", "key3"]
-}
+}}
 
 Only return the JSON object, no other text.
 
 User Query: {query}"""
         
-        response = await self.client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=[{
                 "role": "user",
-                "content": prompt.format(query=query)
+                "content": prompt
             }],
             temperature=0,
             response_format={ "type": "json_object" }

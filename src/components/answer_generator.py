@@ -2,8 +2,8 @@ from abc import abstractmethod
 from typing import List, Dict, Any
 from openai import OpenAI
 from .base_component import BaseComponent
-from .config import Settings
-from .models import RAGResponse, Citation
+from ..config import Settings
+from ..models import RAGResponse, Citation, SearchResult
 import json
 
 class BaseAnswerGenerator(BaseComponent):
@@ -11,12 +11,12 @@ class BaseAnswerGenerator(BaseComponent):
     def __init__(self):
         super().__init__(name="answer_generator")
     
-    async def _execute(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
+    def _execute(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
         """Execute answer generation"""
-        return await self.generate_answer(query, context)
+        return self.generate_answer(query, context)
     
     @abstractmethod
-    async def generate_answer(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
+    def generate_answer(self, query: str, context: List[Dict[str, Any]]) -> RAGResponse:
         """Generate an answer using the retrieved context."""
         pass
 

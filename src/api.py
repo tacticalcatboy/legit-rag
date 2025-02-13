@@ -20,9 +20,9 @@ app = FastAPI()
 # Load settings
 settings = Settings()
 
-# Initialize vector store
-vector_store = VectorRetriever(
-    collection_name=settings.collection_name,
+# Initialize retriever
+retriever = VectorRetriever(
+    collection_name=settings.qdrant_collection_name,
     url=settings.qdrant_url
 )
 
@@ -36,7 +36,7 @@ answer_generator = LLMAnswerGenerator(model=settings.answer_model)
 workflow = RAGWorkflow(
     router=router,
     reformulator=reformulator,
-    retriever=vector_store,
+    retriever=retriever,
     completion_checker=completion_checker,
     answer_generator=answer_generator,
     completion_threshold=settings.completion_threshold
@@ -65,9 +65,9 @@ async def add_documents(request: DocumentRequest) -> dict:
         return {"status": "success", "message": f"Added {len(documents)} documents"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/health")
-async def health_check():
+def health_check():
+    """Health check endpoint"""
     return {"status": "healthy"}
 
 @app.get("/logs/workflows")
