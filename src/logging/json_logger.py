@@ -7,34 +7,45 @@ from .base import BaseLogger, StepLog, WorkflowLog
 class JsonLogger(BaseLogger):
     def __init__(self, log_dir: str = "logs"):
         self.log_dir = Path(log_dir)
-        self.log_dir.mkdir(exist_ok=True)
-        
-        # Separate directories for workflows and steps
-        self.workflow_dir = self.log_dir / "workflows"
-        self.workflow_dir.mkdir(exist_ok=True)
-        
         self.step_dir = self.log_dir / "steps"
-        self.step_dir.mkdir(exist_ok=True)
+        self.workflow_dir = self.log_dir / "workflows"
+        
+        # Create directories if they don't exist
+        self.step_dir.mkdir(parents=True, exist_ok=True)
+        self.workflow_dir.mkdir(parents=True, exist_ok=True)
     
-    def _serialize(self, obj: Any) -> Any:
-        """Simple serialization of objects"""
-        if isinstance(obj, datetime):
-            return obj.isoformat()
-        if hasattr(obj, '__dict__'):
-            return obj.__dict__
-        return str(obj)
+    def log_step(self, workflow_id: str, step_log: StepLog) -> None:
+        """Log a single step to a JSON file"""
+        step_data = {
+            "step_id": step_log.step_id,
+            "workflow_id": workflow_id,
+            "step_name": step_log.step_name,
+            "input": step_log.input,
+            "output": step_log.output,
+            "metadata": step_log.metadata,
+            "timestamp": step_log.timestamp.isoformat(),
+            "duration_ms": step_log.duration_ms,
+            "success": step_log.success,
+            "error": step_log.error
+        }
+        
+        with open(self.step_dir / f"{step_log.step_id}.json", 'w') as f:
+            json.dump(step_data, f, indent=2)
     
-    async def log_step(self, step_log: StepLog) -> None:
-        """Log individual step"""
-        step_file = self.step_dir / f"{step_log.step_id}.json"
-        with open(step_file, "w") as f:
-            json.dump(self._serialize_step(step_log), f, indent=2)
-    
-    async def log_workflow(self, workflow_log: WorkflowLog) -> None:
-        """Log workflow with step references"""
-        workflow_file = self.workflow_dir / f"{workflow_log.workflow_id}.json"
-        with open(workflow_file, "w") as f:
-            json.dump(self._serialize_workflow(workflow_log), f, indent=2)
+    def log_workflow(self, workflow_log: WorkflowLog) -> None:
+        """Log the entire workflow completion to a JSON file"""
+        workflow_data = {
+            "workflow_id": workflow_log.workflow_id,
+            "query": workflow_log.query,
+            "step_ids": workflow_log.step_ids,
+            "start_time": workflow_log.start_time.isoformat(),
+            "end_time": workflow_log.end_time.isoformat(),
+            "success": workflow_log.success,
+            "final_response": workflow_log.final_response
+        }
+        
+        with open(self.workflow_dir / f"{workflow_log.workflow_id}.json", 'w') as f:
+            json.dump(workflow_data, f, indent=2)
     
     def get_workflow_logs(self, 
                          workflow_id: Optional[str] = None,
@@ -52,7 +63,25 @@ class JsonLogger(BaseLogger):
                 try:
                     with open(wf_file) as f:
                         data = json.load(f)
-                        workflows.append(data)
+                        # Convert ISO format strings back to datetime
+                        start = datetime.fromisoformat(data["start_time"])
+                        end = datetime.fromisoformat(data["end_time"])
+                        
+                        # Apply time filters if specified
+                        if start_time and start < start_time:
+                            continue
+                        if end_time and end > end_time:
+                            continue
+                            
+                        workflows.append(WorkflowLog(
+                            workflow_id=data["workflow_id"],
+                            query=data["query"],
+                            step_ids=data["step_ids"],
+                            start_time=start,
+                            end_time=end,
+                            success=data["success"],
+                            final_response=data.get("final_response")
+                        ))
                 except Exception as e:
                     print(f"Error reading workflow log {wf_file}: {e}")
                     continue

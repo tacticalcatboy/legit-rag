@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime
 import json
 import uuid
-from ..evaluation.base import EvaluationResult
 
 @dataclass
 class StepLog:
@@ -17,7 +16,6 @@ class StepLog:
     duration_ms: float
     success: bool
     error: Optional[str] = None
-    evaluation: Optional[EvaluationResult] = None
 
 @dataclass
 class WorkflowLog:

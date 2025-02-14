@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import uvicorn
 from datetime import datetime
-
+import logging
 from .config import Settings
 from .components import (
     LLMRequestRouter,
@@ -12,10 +12,12 @@ from .components import (
     LLMCompletionChecker,
     LLMAnswerGenerator
 )
-from .rag_workflow import RAGWorkflow
+from .workflow import RAGWorkflow
 from .models import RAGResponse, Document
 
 app = FastAPI()
+
+logger = logging.getLogger(__name__)
 
 # Load settings
 settings = Settings()
@@ -49,11 +51,12 @@ class DocumentRequest(BaseModel):
     documents: List[Document]
 
 @app.post("/query")
-async def process_query(request: QueryRequest) -> Optional[RAGResponse]:
+async def process_query(request: QueryRequest):
     """Process a query through the RAG workflow"""
-    response = workflow.process_query(request.query)
-    if response is None:
-        raise HTTPException(status_code=400, detail="Query cannot be answered with available context")
+    response, workflow_log = workflow.execute(request.query)
+    logger.info(workflow_log)
+    if not response:
+        raise HTTPException(status_code=400, detail="Could not process query")
     return response
 
 @app.post("/documents")
