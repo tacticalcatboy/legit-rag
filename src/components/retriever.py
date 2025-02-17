@@ -88,7 +88,6 @@ class VectorRetriever(BaseRetriever):
         return [
             SearchResult(
                 text=hit.payload["text"],
-                vector=np.array(hit.vector) if hit.vector else np.array([]),
                 metadata={k: v for k, v in hit.payload.items() if k != "text"},
                 score=hit.score
             )
@@ -115,7 +114,6 @@ class VectorRetriever(BaseRetriever):
         return [
             SearchResult(
                 text=point.payload["text"],
-                vector=np.array(point.vector) if point.vector else np.array([]),
                 metadata={k: v for k, v in point.payload.items() if k != "text"},
                 score=1.0
             )

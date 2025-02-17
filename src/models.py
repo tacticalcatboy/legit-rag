@@ -11,7 +11,6 @@ class Document:
 @dataclass
 class SearchResult:
     text: str
-    vector: np.ndarray
     metadata: Dict
     score: float
 

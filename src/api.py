@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import uvicorn
 from datetime import datetime
-import logging
 from .config import Settings
+from .logging.json_logger import JsonLogger
 from .components import (
     LLMRequestRouter,
     LLMQueryReformulator,
@@ -17,7 +17,7 @@ from .models import RAGResponse, Document
 
 app = FastAPI()
 
-logger = logging.getLogger(__name__)
+logger = JsonLogger()
 
 # Load settings
 settings = Settings()
@@ -54,7 +54,7 @@ class DocumentRequest(BaseModel):
 async def process_query(request: QueryRequest):
     """Process a query through the RAG workflow"""
     response, workflow_log = workflow.execute(request.query)
-    logger.info(workflow_log)
+    logger.log_workflow(workflow_log)
     if not response:
         raise HTTPException(status_code=400, detail="Could not process query")
     return response

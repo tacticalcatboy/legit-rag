@@ -1,5 +1,4 @@
 from typing import Optional, Tuple, List, Dict, Any
-import logging
 import sys
 from ..models import RAGResponse, QueryIntent
 from ..components import (
@@ -11,14 +10,9 @@ from ..components import (
 )
 from .base import BaseWorkflow
 from ..logging.base import StepLog
-
+from ..logging.json_logger import JsonLogger
 # Configure logging to write to stdout
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
+logger = JsonLogger()
 
 class RAGWorkflow(BaseWorkflow):
     def __init__(
@@ -44,7 +38,7 @@ class RAGWorkflow(BaseWorkflow):
         
         # Route
         intent, route_log = self.router.execute(query)
-        logger.info(route_log)
+        logger.log_step(route_log)
 
         step_logs.append(route_log)
         if intent != QueryIntent.ANSWER:
@@ -52,6 +46,7 @@ class RAGWorkflow(BaseWorkflow):
         
         # Reformulate
         reformulated, reform_log = self.reformulator.execute(query)
+        logger.log_step(reform_log)
         step_logs.append(reform_log)
         
         # Retrieve
@@ -60,10 +55,10 @@ class RAGWorkflow(BaseWorkflow):
             reformulated.keywords
         )
         step_logs.append(retrieve_log)
-        logger.info(retrieve_log)
+        logger.log_step(retrieve_log)
         # Check completion
         completion_score, check_log = self.completion_checker.execute(query, context)
-        logger.info(check_log)
+        logger.log_step(check_log)
         step_logs.append(check_log)
 
         if completion_score < self.completion_threshold:
@@ -71,7 +66,7 @@ class RAGWorkflow(BaseWorkflow):
         
         # Generate answer
         response, generate_log = self.answer_generator.execute(query, context)
-        logger.info(generate_log)
+        logger.log_step(generate_log)
 
         step_logs.append(generate_log)
         return response, step_logs 

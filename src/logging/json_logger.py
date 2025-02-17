@@ -2,7 +2,19 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from enum import Enum
+from dataclasses import asdict, is_dataclass
 from .base import BaseLogger, StepLog, WorkflowLog
+
+class LoggingEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if is_dataclass(obj):
+            return asdict(obj)
+        if isinstance(obj, Enum):
+            return obj.value
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 class JsonLogger(BaseLogger):
     def __init__(self, log_dir: str = "logs"):
@@ -14,11 +26,10 @@ class JsonLogger(BaseLogger):
         self.step_dir.mkdir(parents=True, exist_ok=True)
         self.workflow_dir.mkdir(parents=True, exist_ok=True)
     
-    def log_step(self, workflow_id: str, step_log: StepLog) -> None:
+    def log_step(self, step_log: StepLog) -> None:
         """Log a single step to a JSON file"""
         step_data = {
             "step_id": step_log.step_id,
-            "workflow_id": workflow_id,
             "step_name": step_log.step_name,
             "input": step_log.input,
             "output": step_log.output,
@@ -30,7 +41,7 @@ class JsonLogger(BaseLogger):
         }
         
         with open(self.step_dir / f"{step_log.step_id}.json", 'w') as f:
-            json.dump(step_data, f, indent=2)
+            json.dump(step_data, f, indent=2, cls=LoggingEncoder)
     
     def log_workflow(self, workflow_log: WorkflowLog) -> None:
         """Log the entire workflow completion to a JSON file"""
@@ -45,7 +56,7 @@ class JsonLogger(BaseLogger):
         }
         
         with open(self.workflow_dir / f"{workflow_log.workflow_id}.json", 'w') as f:
-            json.dump(workflow_data, f, indent=2)
+            json.dump(workflow_data, f, indent=2, cls=LoggingEncoder)
     
     def get_workflow_logs(self, 
                          workflow_id: Optional[str] = None,
