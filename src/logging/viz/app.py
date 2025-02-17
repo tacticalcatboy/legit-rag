@@ -21,13 +21,12 @@ class LogVisualizer:
         
         data = []
         for wf in workflows:
-            # Access as dictionary instead of object
             data.append({
-                'workflow_id': wf['workflow_id'],
-                'query': wf['query'],
-                'success': wf['success'],
-                'timestamp': datetime.fromisoformat(wf['start_time']),
-                'num_steps': len(wf['steps'])
+                'workflow_id': wf.workflow_id,  # Access as object attributes
+                'query': wf.query,
+                'success': wf.success,
+                'timestamp': wf.start_time,
+                'num_steps': len(wf.step_ids)
             })
         
         return pd.DataFrame(data)
@@ -40,14 +39,16 @@ class LogVisualizer:
         
         data = []
         for wf in workflows:
-            for step in wf['steps']:  # Access as dictionary
-                data.append({
-                    'workflow_id': wf['workflow_id'],
-                    'step_name': step['step_name'],
-                    'success': step['success'],
-                    'duration_ms': step['duration_ms'],
-                    'timestamp': datetime.fromisoformat(step['timestamp'])
-                })
+            for step_id in wf.step_ids:
+                with open(self.logger.step_dir / f"{step_id}.json") as f:
+                    step = json.load(f)
+                    data.append({
+                        'workflow_id': wf.workflow_id,
+                        'step_name': step['step_name'],
+                        'success': step['success'],
+                        'duration_ms': step['duration_ms'],
+                        'timestamp': datetime.fromisoformat(step['timestamp'])
+                    })
         
         return pd.DataFrame(data)
 
