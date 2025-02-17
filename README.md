@@ -2,6 +2,12 @@
 
 A modular Retrieval-Augmented Generation (RAG) system built with FastAPI, Qdrant, and OpenAI.
 
+## System Components
+
+- [Components](src/components/README.md) - Individual RAG components
+- [Workflow Components](src/workflow/README.md) - RAG workflow implementation
+- [Logging System](src/logging/README.md) - Event logging and visualization
+
 ## Workflow Components
 
 The system follows a 5-step RAG workflow:
