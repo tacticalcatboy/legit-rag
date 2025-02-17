@@ -1,22 +1,27 @@
+from abc import abstractmethod
 from enum import Enum
-from abc import ABC, abstractmethod
-from typing import Optional
 from openai import OpenAI
-from .config import Settings
+from .base_component import BaseComponent
+from ..config import Settings
+from ..models import QueryIntent
 
-class QueryIntent(Enum):
-    ANSWER = "answer"          # Direct answer using RAG
-    CLARIFY = "clarify"       # Need more information
-    REJECT = "reject"         # Cannot/should not answer
-
-class BaseRequestRouter(ABC):
+class BaseRequestRouter(BaseComponent):
+    """Base class for routing user queries"""
+    def __init__(self):
+        super().__init__(name="router")
+    
+    def _execute(self, query: str) -> QueryIntent:
+        """Execute routing"""
+        return self.route_query(query)
+    
     @abstractmethod
     def route_query(self, query: str) -> QueryIntent:
-        """Determine how to handle the incoming query."""
+        """Determine the intent of the query."""
         pass
 
 class LLMRequestRouter(BaseRequestRouter):
     def __init__(self, model: str = "gpt-4-turbo-preview"):
+        super().__init__()
         settings = Settings()
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model

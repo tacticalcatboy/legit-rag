@@ -4,3 +4,6 @@ __pycache__/
 
 # ignore Pycharm/IntelliJ configuration files
 .idea
+
+#ignore generated logs
+logs/*

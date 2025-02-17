@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional
 import numpy as np
+from enum import Enum
 
 @dataclass
 class Document:
@@ -10,7 +11,6 @@ class Document:
 @dataclass
 class SearchResult:
     text: str
-    vector: np.ndarray
     metadata: Dict
     score: float
 
@@ -25,3 +25,8 @@ class RAGResponse:
     answer: str
     citations: List[Citation]
     confidence_score: float 
+
+class QueryIntent(Enum):
+    ANSWER = "answer"          # Direct answer using RAG
+    CLARIFY = "clarify"       # Need more information
+    REJECT = "reject"         # Cannot/should not answer

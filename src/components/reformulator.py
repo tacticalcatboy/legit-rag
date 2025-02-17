@@ -1,16 +1,25 @@
 from abc import ABC, abstractmethod
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
-from typing import List
 from openai import OpenAI
 import json
-from .config import Settings
+from .base_component import BaseComponent
+from ..config import Settings
 
-class BaseQueryReformulator(ABC):
-    @dataclass
-    class ReformulatedQuery:
-        refined_text: str
-        keywords: List[str]
-        
+@dataclass
+class ReformulatedQuery:
+    refined_text: str
+    keywords: List[str]
+
+class BaseQueryReformulator(BaseComponent, ABC):
+    """Base class for query reformulation"""
+    def __init__(self):
+        super().__init__(name="reformulator")
+    
+    def _execute(self, query: str) -> ReformulatedQuery:
+        """Execute reformulation"""
+        return self.reformulate(query)
+    
     @abstractmethod
     def reformulate(self, query: str) -> ReformulatedQuery:
         """Reformulate the query and generate keywords."""
@@ -18,11 +27,12 @@ class BaseQueryReformulator(ABC):
 
 class LLMQueryReformulator(BaseQueryReformulator):
     def __init__(self, model: str = "gpt-4-turbo-preview"):
+        super().__init__()
         settings = Settings()
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model
     
-    def reformulate(self, query: str) -> BaseQueryReformulator.ReformulatedQuery:
+    def reformulate(self, query: str) -> ReformulatedQuery:
         prompt = f"""Given the user query, reformulate it to be more precise and extract key search terms.
 Return your response in this JSON format:
 {{
@@ -44,12 +54,8 @@ User Query: {query}"""
             response_format={ "type": "json_object" }
         )
         
-        try:
-            result = json.loads(response.choices[0].message.content)
-            return self.ReformulatedQuery(
-                refined_text=result["refined_query"],
-                keywords=result["keywords"]
-            )
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse JSON. Response was: {response.choices[0].message.content}")
-            raise 
+        result = json.loads(response.choices[0].message.content)
+        return ReformulatedQuery(
+            refined_text=result["refined_query"],
+            keywords=result["keywords"]
+        ) 

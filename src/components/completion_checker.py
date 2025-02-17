@@ -1,25 +1,32 @@
-from abc import ABC, abstractmethod
-from typing import List
+from abc import abstractmethod
 from openai import OpenAI
-from .models import SearchResult
-from .config import Settings
+from typing import List, Dict, Any
+from .base_component import BaseComponent
+from ..config import Settings
+from ..models import SearchResult
 
-class BaseCompletionChecker(ABC):
+class BaseCompletionChecker(BaseComponent):
+    """Base class for checking if query can be answered with context"""
+    def __init__(self):
+        super().__init__(name="completion_checker")
+    
+    def _execute(self, query: str, context: List[Dict[str, Any]]) -> float:
+        """Execute completion check"""
+        return self.check_completion(query, context)
+    
     @abstractmethod
-    def can_complete(self, query: str, context: List[SearchResult]) -> float:
-        """
-        Determine if query can be answered with given context.
-        Returns a confidence score between 0 and 1.
-        """
+    def check_completion(self, query: str, context: List[Dict[str, Any]]) -> float:
+        """Check if the query can be answered with the given context."""
         pass
 
 class LLMCompletionChecker(BaseCompletionChecker):
     def __init__(self, model: str = "gpt-4-turbo-preview"):
+        super().__init__()
         settings = Settings()
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.model = model
     
-    def can_complete(self, query: str, context: List[SearchResult]) -> float:
+    def check_completion(self, query: str, context: List[SearchResult]) -> float:
         formatted_context = "\n\n".join([
             f"Context {i+1}:\n{result.text}"
             for i, result in enumerate(context)

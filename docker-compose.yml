@@ -16,8 +16,21 @@ services:
       - QDRANT_URL=http://qdrant:6333
     env_file:
       - .env
+    volumes:
+      - ./logs:/app/logs
     depends_on:
       - qdrant
+
+  viz:
+    build: 
+      context: .
+      dockerfile: src/logging/viz/Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - api
 
 volumes:
   qdrant_data: 
