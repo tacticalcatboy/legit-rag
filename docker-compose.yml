@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+  ## ← new Ollama service
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"       # OpenAI-compatible endpoint
+    volumes:
+      - ollama_data:/root/.ollama
+
   qdrant:
     image: qdrant/qdrant
     ports:
@@ -12,14 +21,18 @@ services:
     build: .
     ports:
       - "8000:8000"
-    environment:
-      - QDRANT_URL=http://qdrant:6333
     env_file:
       - .env
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      # you can also override here instead of .env:
+      # - OPENAI_BASE_URL=http://ollama:11434/v1
+      # - OPENAI_API_KEY=dummy
     volumes:
       - ./logs:/app/logs
     depends_on:
       - qdrant
+      - ollama   # make sure Ollama is up first
 
   viz:
     build: 
@@ -33,4 +46,5 @@ services:
       - api
 
 volumes:
-  qdrant_data: 
+  qdrant_data:
+  ollama_data:    # ← volume for Ollama’s pull-in models & cache
